@@ -1,8 +1,8 @@
 local log = require "kong.cmd.utils.log"
 local kill = require "kong.cmd.utils.kill"
 local meta = require "kong.meta"
+local ver = require "kong.cmd.utils.ver"
 local pl_path = require "pl.path"
-local version = require "version"
 local pl_utils = require "pl.utils"
 local fmt = string.format
 
@@ -12,7 +12,7 @@ local nginx_search_paths = {
   ""
 }
 local nginx_version_pattern = "^nginx.-openresty.-([%d%.]+)"
-local nginx_compatible = version.set(unpack(meta._DEPENDENCIES.nginx))
+local nginx_compatible = meta._DEPENDENCIES.nginx
 
 local function is_openresty(bin_path)
   local cmd = fmt("%s -v", bin_path)
@@ -20,7 +20,7 @@ local function is_openresty(bin_path)
   log.debug("%s: '%s'", cmd, stderr:sub(1, -2))
   if ok and stderr then
     local version_match = stderr:match(nginx_version_pattern)
-    if not version_match or not nginx_compatible:matches(version_match) then
+    if not version_match or not ver.greater_than(version_match, nginx_compatible) then
       log.verbose("incompatible OpenResty found at %s. Kong requires version"..
                   " %s, got %s", bin_path, tostring(nginx_compatible),
                   version_match)

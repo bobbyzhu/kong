@@ -9,12 +9,12 @@ local Serf = require "kong.serf"
 local kill = require "kong.cmd.utils.kill"
 local log = require "kong.cmd.utils.log"
 local meta = require "kong.meta"
-local version = require "version"
+local ver = require "kong.cmd.utils.ver"
 local fmt = string.format
 
 local serf_event_name = "kong"
 local serf_version_pattern = "^Serf v([%d%.]+)"
-local serf_compatible = version.set(unpack(meta._DEPENDENCIES.serf))
+local serf_compatible = meta._DEPENDENCIES.serf
 local start_timeout = 5
 local serf_search_paths = {
   "serf",
@@ -27,7 +27,7 @@ local function check_version(path)
   log.debug("%s: '%s'", cmd, pl_stringx.splitlines(stdout)[1])
   if ok and stdout then
     local version_match = stdout:match(serf_version_pattern)
-    if not version_match or not serf_compatible:matches(version_match) then
+    if not version_match or not ver.greater_than(version_match, serf_compatible) then
       log.verbose(fmt("incompatible serf found at '%s'. Kong requires version '%s', got '%s'",
                   path, tostring(serf_compatible), version_match))
       return false

@@ -6,12 +6,12 @@ local pl_tablex = require "pl.tablex"
 local pl_utils = require "pl.utils"
 local pl_file = require "pl.file"
 local pl_path = require "pl.path"
-local version = require "version"
 local pl_dir = require "pl.dir"
 local socket = require "socket"
 local utils = require "kong.tools.utils"
 local meta = require "kong.meta"
 local log = require "kong.cmd.utils.log"
+local ver = require "kong.cmd.utils.ver"
 local constants = require "kong.constants"
 local fmt = string.format
 
@@ -43,7 +43,7 @@ client:request { \
 
 local resty_bin_name = "resty"
 local resty_version_pattern = "nginx[^\n]-openresty[^\n]-([%d%.]+)"
-local resty_compatible = version.set(unpack(meta._DEPENDENCIES.nginx))
+local resty_compatible = meta._DEPENDENCIES.nginx
 local resty_search_paths = {
   "/usr/local/openresty/bin",
   ""
@@ -61,7 +61,7 @@ local function is_openresty(bin_path)
   log.debug("%s: '%s'", cmd, stderr)
   if ok and stderr then
     local version_match = stderr:match(resty_version_pattern)
-    if not version_match or not resty_compatible:matches(version_match) then
+    if not version_match or not ver.greater_than(version_match, resty_compatible) then
       log.verbose("'resty' found at %s uses incompatible OpenResty. Kong "..
                   "requires OpenResty version %s, got %s", bin_path,
                   tostring(resty_compatible), version_match)
